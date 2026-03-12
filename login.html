@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login de Usuario</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; margin-top: 50px; }
+        .formulario { border: 1px solid #ccc; padding: 20px; width: 300px; border-radius: 8px; background-color: #f9f9f9; }
+        input { width: 90%; padding: 8px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 10px; width: 100%; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background-color: #0056b3; }
+    </style>
+    <script>
+        /* Validación de datos con JavaScript (Frontend) */
+        function validarFormulario(event) {
+            var user = document.getElementById('usuario').value;
+            var pass = document.getElementById('password').value;
+
+            // Revisamos que no estén vacíos
+            if (user.trim() === "" || pass.trim() === "") {
+                alert("Por favor, llena ambos campos antes de ingresar.");
+                event.preventDefault(); // Detiene el envío de datos si hay error
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div class="formulario">
+        <h2>Iniciar Sesión</h2>
+        <form action="/login" method="POST" onsubmit="validarFormulario(event)">
+            <label>Usuario:</label><br>
+            <input type="text" id="usuario" name="usuario"><br><br>
+            
+            <label>Password:</label><br>
+            <input type="password" id="password" name="password"><br>
+            
+            <button type="submit">Entrar</button>
+
+        </form>
+    </div>
+
+</body>
+</html>
