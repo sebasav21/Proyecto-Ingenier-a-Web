@@ -116,12 +116,12 @@ export default function InventarioPage() {
   const TIPO_COLOR = {
     entrada: "bg-green-100 text-green-700",
     salida: "bg-red-100 text-red-700",
-    ajuste: "bg-blue-100 text-blue-700",
+    ajuste: "bg-guinda-100 text-guinda-700",
   };
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -136,7 +136,7 @@ export default function InventarioPage() {
             <p className="text-sm text-gray-500 mt-1">Registra entradas, salidas y ajustes de stock</p>
           </div>
           <button onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            className="bg-guinda-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-guinda-800 transition">
             + Registrar movimiento
           </button>
         </div>
@@ -240,7 +240,7 @@ export default function InventarioPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Producto *</label>
                 <select value={form.producto_id} onChange={(e) => setForm({ ...form, producto_id: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500">
                   <option value="">Selecciona un producto</option>
                   {productos.map((p) => (
                     <option key={p.id} value={p.id}>{p.nombre} (stock: {p.stock})</option>
@@ -253,7 +253,7 @@ export default function InventarioPage() {
                 <div className="grid grid-cols-3 gap-2">
                   {(["entrada", "salida", "ajuste"] as const).map((t) => (
                     <button key={t} type="button" onClick={() => setForm({ ...form, tipo: t })}
-                      className={`py-2 rounded-lg text-sm font-medium border transition ${form.tipo === t ? "bg-blue-600 text-white border-blue-600" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
+                      className={`py-2 rounded-lg text-sm font-medium border transition ${form.tipo === t ? "bg-guinda-700 text-white border-guinda-700" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}>
                       {t.charAt(0).toUpperCase() + t.slice(1)}
                     </button>
                   ))}
@@ -270,14 +270,14 @@ export default function InventarioPage() {
                 </label>
                 <input type="number" min="1" value={form.cantidad}
                   onChange={(e) => setForm({ ...form, cantidad: e.target.value })}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
                 <input value={form.motivo} onChange={(e) => setForm({ ...form, motivo: e.target.value })}
                   placeholder="Ej. Reabastecimiento, merma, devolución..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
               </div>
             </div>
 
@@ -287,7 +287,7 @@ export default function InventarioPage() {
                 Cancelar
               </button>
               <button onClick={registrarMovimiento} disabled={saving}
-                className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                className="flex-1 bg-guinda-700 text-white py-2 rounded-lg text-sm font-medium hover:bg-guinda-800 disabled:opacity-50">
                 {saving ? "Guardando..." : "Registrar"}
               </button>
             </div>

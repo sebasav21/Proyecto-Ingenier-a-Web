@@ -86,7 +86,7 @@ export default function TiendaPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar productos..."
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500"
           />
         </form>
 
@@ -96,14 +96,14 @@ export default function TiendaPage() {
             <ul className="space-y-1">
               <li>
                 <button onClick={() => filtrarCategoria(null)}
-                  className={`w-full text-left text-sm px-3 py-1.5 rounded-lg ${!categoriaActiva ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-100"}`}>
+                  className={`w-full text-left text-sm px-3 py-1.5 rounded-lg ${!categoriaActiva ? "bg-guinda-50 text-guinda-700 font-medium" : "text-gray-600 hover:bg-gray-100"}`}>
                   Todos
                 </button>
               </li>
               {categorias.map((cat) => (
                 <li key={cat.id}>
                   <button onClick={() => filtrarCategoria(cat.id)}
-                    className={`w-full text-left text-sm px-3 py-1.5 rounded-lg ${categoriaActiva === cat.id ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-100"}`}>
+                    className={`w-full text-left text-sm px-3 py-1.5 rounded-lg ${categoriaActiva === cat.id ? "bg-guinda-50 text-guinda-700 font-medium" : "text-gray-600 hover:bg-gray-100"}`}>
                     {cat.nombre}
                   </button>
                 </li>
@@ -114,12 +114,12 @@ export default function TiendaPage() {
           <main className="flex-1">
             {loading ? (
               <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : !productos.length ? (
               <div className="text-center py-20 text-gray-400">
                 <p className="text-lg font-medium">No se encontraron productos</p>
-                <button onClick={() => filtrarCategoria(null)} className="text-blue-600 text-sm mt-2 hover:underline">
+                <button onClick={() => filtrarCategoria(null)} className="text-guinda-700 text-sm mt-2 hover:underline">
                   Ver todos
                 </button>
               </div>
@@ -139,7 +139,7 @@ export default function TiendaPage() {
                       </div>
                       <div className="p-3">
                         <p className="text-xs text-gray-400 mb-0.5">{p.categorias?.nombre}</p>
-                        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-blue-600">
+                        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-guinda-700">
                           {p.nombre}
                         </h3>
                         <p className="text-base font-bold text-gray-900 mt-1">

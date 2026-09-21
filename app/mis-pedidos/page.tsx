@@ -26,7 +26,7 @@ const ESTADO_LABEL: Record<EstadoPedido, string> = {
 
 const ESTADO_COLOR: Record<EstadoPedido, string> = {
   pendiente: "bg-yellow-100 text-yellow-700",
-  confirmado: "bg-blue-100 text-blue-700",
+  confirmado: "bg-guinda-100 text-guinda-700",
   enviado: "bg-purple-100 text-purple-700",
   entregado: "bg-green-100 text-green-700",
   cancelado: "bg-red-100 text-red-700",
@@ -65,7 +65,7 @@ function MisPedidosContent() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -86,7 +86,7 @@ function MisPedidosContent() {
           <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
             <div className="text-6xl mb-4">📦</div>
             <p className="text-gray-500 text-lg mb-4">Aún no tienes pedidos</p>
-            <a href="/tienda" className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+            <a href="/tienda" className="bg-guinda-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-guinda-800 transition">
               Ver productos
             </a>
           </div>
@@ -150,7 +150,7 @@ function MisPedidosContent() {
 
 export default function MisPedidosPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" /></div>}>
       <MisPedidosContent />
     </Suspense>
   );

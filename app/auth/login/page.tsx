@@ -83,23 +83,23 @@ function LoginForm() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="tucorreo@ejemplo.com"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
         </div>
         <button type="submit" disabled={loading}
-          className="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition">
+          className="w-full bg-guinda-700 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-guinda-800 disabled:opacity-50 transition">
           {loading ? "Ingresando..." : "Ingresar"}
         </button>
       </form>
 
       <p className="text-center text-sm text-gray-500 mt-6">
         ¿No tienes cuenta?{" "}
-        <Link href="/auth/registro" className="text-blue-600 hover:underline font-medium">Regístrate</Link>
+        <Link href="/auth/registro" className="text-guinda-700 hover:underline font-medium">Regístrate</Link>
       </p>
     </div>
   );
@@ -108,7 +108,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Suspense fallback={<div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />}>
+      <Suspense fallback={<div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />}>
         <LoginForm />
       </Suspense>
     </div>

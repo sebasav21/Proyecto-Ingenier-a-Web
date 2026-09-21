@@ -73,7 +73,7 @@ export default function CarritoPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -89,7 +89,7 @@ export default function CarritoPage() {
             <div className="text-6xl mb-4">🛒</div>
             <p className="text-gray-500 text-lg mb-4">Tu carrito está vacío</p>
             <Link href="/tienda"
-              className="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+              className="bg-guinda-700 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-guinda-800 transition">
               Ver productos
             </Link>
           </div>
@@ -111,7 +111,7 @@ export default function CarritoPage() {
 
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-gray-900 text-sm truncate">{item.productos.nombre}</h3>
-                      <p className="text-blue-600 font-bold mt-1">
+                      <p className="text-guinda-700 font-bold mt-1">
                         ${Number(item.productos.precio).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
                       </p>
 
@@ -168,7 +168,7 @@ export default function CarritoPage() {
                   </div>
                 </div>
                 <Link href="/checkout"
-                  className="block w-full bg-blue-600 text-white text-center py-3 rounded-xl font-medium hover:bg-blue-700 transition">
+                  className="block w-full bg-guinda-700 text-white text-center py-3 rounded-xl font-medium hover:bg-guinda-800 transition">
                   Proceder al pago
                 </Link>
                 <Link href="/tienda"

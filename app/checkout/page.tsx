@@ -133,7 +133,7 @@ export default function CheckoutPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
         value={form[key as keyof typeof form]}
         onChange={(e) => set(key, e.target.value)}
         placeholder={placeholder}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500"
       />
     </div>
   );
@@ -190,14 +190,14 @@ export default function CheckoutPage() {
                   onChange={(e) => set("notas", e.target.value)}
                   placeholder="Instrucciones especiales de entrega..."
                   rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500 resize-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={procesando}
-                className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 transition mt-2">
+                className="w-full bg-guinda-700 text-white py-3 rounded-xl font-medium hover:bg-guinda-800 disabled:opacity-50 transition mt-2">
                 {procesando ? "Procesando pedido..." : "Confirmar pedido"}
               </button>
             </form>

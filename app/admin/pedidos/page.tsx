@@ -20,7 +20,7 @@ const ESTADOS: EstadoPedido[] = ["pendiente", "confirmado", "enviado", "entregad
 
 const ESTADO_COLOR: Record<EstadoPedido, string> = {
   pendiente: "bg-yellow-100 text-yellow-700",
-  confirmado: "bg-blue-100 text-blue-700",
+  confirmado: "bg-guinda-100 text-guinda-700",
   enviado: "bg-purple-100 text-purple-700",
   entregado: "bg-green-100 text-green-700",
   cancelado: "bg-red-100 text-red-700",
@@ -68,7 +68,7 @@ export default function AdminPedidosPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -78,7 +78,7 @@ export default function AdminPedidosPage() {
 
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <Link href="/admin" className="text-sm text-blue-600 hover:underline">← Panel admin</Link>
+          <Link href="/admin" className="text-sm text-guinda-700 hover:underline">← Panel admin</Link>
           <h1 className="text-2xl font-bold text-gray-900 mt-1">Pedidos</h1>
         </div>
 
@@ -86,7 +86,7 @@ export default function AdminPedidosPage() {
         <div className="flex gap-2 mb-6 flex-wrap">
           {(["todos", ...ESTADOS] as (EstadoPedido | "todos")[]).map((e) => (
             <button key={e} onClick={() => setFiltro(e)}
-              className={`text-sm px-3 py-1.5 rounded-lg font-medium transition ${filtro === e ? "bg-blue-600 text-white" : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm"}`}>
+              className={`text-sm px-3 py-1.5 rounded-lg font-medium transition ${filtro === e ? "bg-guinda-700 text-white" : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm"}`}>
               {e === "todos" ? "Todos" : e.charAt(0).toUpperCase() + e.slice(1)}
               <span className="ml-1.5 text-xs opacity-70">
                 ({e === "todos" ? pedidos.length : pedidos.filter((p) => p.estado === e).length})
@@ -125,7 +125,7 @@ export default function AdminPedidosPage() {
                     value={pedido.estado}
                     onChange={(e) => cambiarEstado(pedido.id, e.target.value as EstadoPedido)}
                     disabled={actualizando === pedido.id}
-                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
+                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-guinda-500 disabled:opacity-50">
                     {ESTADOS.map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
                   </select>
                 </div>

@@ -95,7 +95,7 @@ export default function RegistroPage() {
         value={form[key as keyof typeof form]}
         onChange={(e) => set(key, e.target.value)}
         placeholder={placeholder}
-        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500"
       />
     </div>
   );
@@ -145,7 +145,7 @@ export default function RegistroPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+            className="w-full bg-guinda-700 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-guinda-800 disabled:opacity-50 transition"
           >
             {loading ? "Creando cuenta..." : "Crear cuenta"}
           </button>
@@ -153,7 +153,7 @@ export default function RegistroPage() {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           ¿Ya tienes cuenta?{" "}
-          <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
+          <Link href="/auth/login" className="text-guinda-700 hover:underline font-medium">
             Inicia sesión
           </Link>
         </p>

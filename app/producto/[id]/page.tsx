@@ -68,14 +68,14 @@ export default function ProductoPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!producto) return (
     <div className="min-h-screen flex items-center justify-center flex-col gap-4">
       <p className="text-gray-500">Producto no encontrado</p>
-      <Link href="/tienda" className="text-blue-600 hover:underline">Volver a la tienda</Link>
+      <Link href="/tienda" className="text-guinda-700 hover:underline">Volver a la tienda</Link>
     </div>
   );
 
@@ -84,7 +84,7 @@ export default function ProductoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-200 px-4 h-14 flex items-center gap-2 max-w-6xl mx-auto">
-        <Link href="/tienda" className="text-blue-600 font-bold">TiendaWeb</Link>
+        <Link href="/tienda" className="text-guinda-700 font-bold">TiendaWeb</Link>
         <span className="text-gray-400">/</span>
         <span className="text-sm text-gray-500 truncate">{producto.nombre}</span>
       </nav>
@@ -104,7 +104,7 @@ export default function ProductoPage() {
             {/* Info */}
             <div className="p-8 flex flex-col justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium mb-2">
+                <p className="text-sm text-guinda-700 font-medium mb-2">
                   {(producto.categorias as { nombre: string } | null)?.nombre}
                 </p>
                 <h1 className="text-2xl font-bold text-gray-900 mb-3">{producto.nombre}</h1>
@@ -139,7 +139,7 @@ export default function ProductoPage() {
                 <button
                   onClick={agregarAlCarrito}
                   disabled={adding || producto.stock === 0}
-                  className="w-full bg-blue-600 text-white rounded-xl py-3 font-medium hover:bg-blue-700 disabled:opacity-50 transition"
+                  className="w-full bg-guinda-700 text-white rounded-xl py-3 font-medium hover:bg-guinda-800 disabled:opacity-50 transition"
                 >
                   {adding ? "Agregando..." : "Agregar al carrito"}
                 </button>

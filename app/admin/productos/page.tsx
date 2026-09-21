@@ -101,7 +101,7 @@ export default function AdminProductosPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -112,11 +112,11 @@ export default function AdminProductosPage() {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <Link href="/admin" className="text-sm text-blue-600 hover:underline">← Panel admin</Link>
+            <Link href="/admin" className="text-sm text-guinda-700 hover:underline">← Panel admin</Link>
             <h1 className="text-2xl font-bold text-gray-900 mt-1">Productos</h1>
           </div>
           <button onClick={abrirFormNuevo}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+            className="bg-guinda-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-guinda-800 transition">
             + Nuevo producto
           </button>
         </div>
@@ -130,13 +130,13 @@ export default function AdminProductosPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
                   <input value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
                 </div>
                 {!editando && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                     <textarea value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
-                      rows={2} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                      rows={2} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500 resize-none" />
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3">
@@ -144,19 +144,19 @@ export default function AdminProductosPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Precio *</label>
                     <input type="number" min="0" step="0.01" value={form.precio}
                       onChange={(e) => setForm({ ...form, precio: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Stock *</label>
                     <input type="number" min="0" value={form.stock}
                       onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                   <select value={form.categoria_id} onChange={(e) => setForm({ ...form, categoria_id: e.target.value })}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500">
                     <option value="">Sin categoría</option>
                     {categorias.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                   </select>
@@ -168,7 +168,7 @@ export default function AdminProductosPage() {
                   Cancelar
                 </button>
                 <button onClick={guardar} disabled={saving}
-                  className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+                  className="flex-1 bg-guinda-700 text-white py-2 rounded-lg text-sm font-medium hover:bg-guinda-800 disabled:opacity-50">
                   {saving ? "Guardando..." : "Guardar"}
                 </button>
               </div>
@@ -208,7 +208,7 @@ export default function AdminProductosPage() {
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button onClick={() => abrirFormEditar(p)}
-                        className="text-blue-600 hover:underline text-xs">Editar</button>
+                        className="text-guinda-700 hover:underline text-xs">Editar</button>
                       <button onClick={() => toggleActivo(p.id, p.activo)}
                         className="text-gray-400 hover:text-gray-600 text-xs">
                         {p.activo ? "Desactivar" : "Activar"}

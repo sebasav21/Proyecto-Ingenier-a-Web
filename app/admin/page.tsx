@@ -41,7 +41,7 @@ export default function AdminPage() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-guinda-700 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
@@ -74,14 +74,14 @@ export default function AdminPage() {
           <Link href="/admin/productos"
             className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group">
             <div className="text-3xl mb-3">📦</div>
-            <h2 className="font-semibold text-gray-900 group-hover:text-blue-600">Gestionar productos</h2>
+            <h2 className="font-semibold text-gray-900 group-hover:text-guinda-700">Gestionar productos</h2>
             <p className="text-sm text-gray-500 mt-1">Agregar, editar o desactivar productos del catálogo</p>
           </Link>
 
           <Link href="/admin/pedidos"
             className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group">
             <div className="text-3xl mb-3">📋</div>
-            <h2 className="font-semibold text-gray-900 group-hover:text-blue-600">Gestionar pedidos</h2>
+            <h2 className="font-semibold text-gray-900 group-hover:text-guinda-700">Gestionar pedidos</h2>
             <p className="text-sm text-gray-500 mt-1">Ver y actualizar el estado de los pedidos</p>
           </Link>
         </div>
