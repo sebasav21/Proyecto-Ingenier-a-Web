@@ -206,6 +206,17 @@ CREATE POLICY "pedidos_propios" ON pedidos
 CREATE POLICY "pedidos_insert" ON pedidos
   FOR INSERT WITH CHECK (auth.uid() = usuario_id);
 
+-- Admin puede ver y actualizar todos los pedidos
+CREATE POLICY "pedidos_admin_select" ON pedidos
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM perfiles WHERE id = auth.uid() AND rol IN ('admin', 'general'))
+  );
+
+CREATE POLICY "pedidos_admin_update" ON pedidos
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM perfiles WHERE id = auth.uid() AND rol IN ('admin', 'general'))
+  );
+
 CREATE POLICY "detalle_pedido_propio" ON detalle_pedido
   FOR SELECT USING (
     pedido_id IN (SELECT id FROM pedidos WHERE usuario_id = auth.uid())
