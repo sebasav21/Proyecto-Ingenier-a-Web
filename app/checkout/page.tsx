@@ -113,6 +113,16 @@ export default function CheckoutPage() {
     }));
     await supabase.from("detalle_pedido").insert(detalles);
 
+    // Descontar stock de cada producto
+    for (const item of items) {
+      const { data: prod } = await supabase
+        .from("productos").select("stock").eq("id", item.productos.id).single();
+      if (prod) {
+        const nuevoStock = Math.max(0, prod.stock - item.cantidad);
+        await supabase.from("productos").update({ stock: nuevoStock }).eq("id", item.productos.id);
+      }
+    }
+
     // Limpiar carrito
     if (carritoId) {
       await supabase.from("items_carrito").delete().eq("carrito_id", carritoId);
