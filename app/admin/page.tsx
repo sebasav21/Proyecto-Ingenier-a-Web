@@ -97,6 +97,12 @@ export default function AdminPage() {
             <h2 className="font-semibold text-gray-900 group-hover:text-guinda-700">Gestionar usuarios</h2>
             <p className="text-sm text-gray-500 mt-1">Ver, editar roles y desactivar cuentas de usuario</p>
           </Link>
+          <Link href="/admin/reportes"
+            className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group">
+            <div className="text-3xl mb-3">📊</div>
+            <h2 className="font-semibold text-gray-900 group-hover:text-guinda-700">Reporte de ventas</h2>
+            <p className="text-sm text-gray-500 mt-1">Ventas por mes y día, producto más vendido</p>
+          </Link>
         </div>
       </div>
     </div>
