@@ -14,6 +14,8 @@ export default function RegistroPage() {
     apellido_materno: "",
     email: "",
     telefono: "",
+    rfc: "",
+    curp: "",
     password: "",
     confirmar: "",
   });
@@ -28,10 +30,16 @@ export default function RegistroPage() {
     if (!form.nombre.trim()) return "El nombre es obligatorio.";
     if (!form.apellido_paterno.trim()) return "El apellido paterno es obligatorio.";
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-      return "Ingresa un correo válido.";
+      return "Ingresa un correo electrónico válido.";
     if (form.telefono && !/^\d{10}$/.test(form.telefono.replace(/\s/g, "")))
-      return "El teléfono debe tener 10 dígitos.";
+      return "El teléfono debe tener 10 dígitos numéricos.";
+    if (form.rfc && !/^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/i.test(form.rfc.trim()))
+      return "El RFC no tiene un formato válido (ej. GALA850101ABC).";
+    if (form.curp && !/^[A-Z]{4}[0-9]{6}[HM][A-Z]{5}[A-Z0-9]{2}$/i.test(form.curp.trim()))
+      return "El CURP no tiene un formato válido (18 caracteres).";
     if (form.password.length < 8) return "La contraseña debe tener al menos 8 caracteres.";
+    if (!/[A-Z]/.test(form.password)) return "La contraseña debe incluir al menos una mayúscula.";
+    if (!/[0-9]/.test(form.password)) return "La contraseña debe incluir al menos un número.";
     if (form.password !== form.confirmar) return "Las contraseñas no coinciden.";
     return "";
   }
@@ -53,6 +61,8 @@ export default function RegistroPage() {
         apellido_materno: form.apellido_materno.trim() || null,
         email: form.email.trim(),
         telefono: form.telefono.trim() || null,
+        rfc: form.rfc.trim() || null,
+        curp: form.curp.trim() || null,
         password: form.password,
       }),
     });
@@ -131,7 +141,11 @@ export default function RegistroPage() {
           {field("Apellido materno", "apellido_materno", "text", "López")}
           {field("Correo electrónico *", "email", "email", "tucorreo@ejemplo.com")}
           {field("Teléfono (10 dígitos)", "telefono", "tel", "5512345678")}
-          {field("Contraseña *", "password", "password", "Mínimo 8 caracteres")}
+          <div className="grid grid-cols-2 gap-3">
+            {field("RFC", "rfc", "text", "GALA850101ABC")}
+            {field("CURP", "curp", "text", "GALA850101HMCRLS09")}
+          </div>
+          {field("Contraseña *", "password", "password", "Mín. 8 caracteres, 1 mayúscula, 1 número")}
           {field("Confirmar contraseña *", "confirmar", "password", "Repite tu contraseña")}
 
           <button
