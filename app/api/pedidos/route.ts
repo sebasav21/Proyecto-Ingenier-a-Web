@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const userId = (session.user as { id: string }).id;
-  const { notas } = await req.json();
+  const { notas, direccion_id, metodo_pago_id } = await req.json();
 
   const carrito = await queryOne<{ id: number }>(
     "SELECT id FROM carritos WHERE usuario_id = $1",
@@ -53,9 +53,9 @@ export async function POST(req: NextRequest) {
   const maxDias = Math.max(...items.map((i) => i.dias_entrega));
 
   const pedido = await queryOne<{ id: number }>(
-    `INSERT INTO pedidos (usuario_id, total, notas, fecha_estimada_entrega)
-     VALUES ($1, $2, $3, CURRENT_DATE + $4::int) RETURNING id`,
-    [userId, total, notas ?? null, maxDias]
+    `INSERT INTO pedidos (usuario_id, total, notas, fecha_estimada_entrega, direccion_id, metodo_pago_id)
+     VALUES ($1, $2, $3, CURRENT_DATE + $4::int, $5, $6) RETURNING id`,
+    [userId, total, notas ?? null, maxDias, direccion_id ?? null, metodo_pago_id ?? null]
   );
 
   for (const item of items) {
