@@ -7,5 +7,6 @@ export const config = {
     "/mis-pedidos/:path*",
     "/admin/:path*",
     "/inventario/:path*",
+    "/mi-cuenta/:path*",
   ],
 };

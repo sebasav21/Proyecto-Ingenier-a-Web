@@ -71,6 +71,8 @@ export default function Navbar({ perfil, cartCount = 0 }: Props) {
                 <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
                   <Link href="/mis-pedidos" onClick={() => setMenuOpen(false)}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mis pedidos</Link>
+                  <Link href="/mi-cuenta" onClick={() => setMenuOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mi cuenta</Link>
                   {(perfil.rol === "admin" || perfil.rol === "general") && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Panel Admin</Link>
