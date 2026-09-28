@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface Direccion {
   id: number;
@@ -423,6 +424,7 @@ export default function MiCuentaPage() {
           </div>
         </div>
       )}
+      <Footer />
     </div>
   );
 }

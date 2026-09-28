@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 
 interface Producto {
   id: number; nombre: string; descripcion: string | null; precio: number;
@@ -262,6 +263,7 @@ export default function ProductoPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

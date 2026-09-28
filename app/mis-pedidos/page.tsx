@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 type EstadoPedido = "pendiente" | "confirmado" | "enviado" | "entregado" | "cancelado";
 
@@ -249,6 +250,7 @@ function MisPedidosContent() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface Producto {
   id: number;
@@ -149,6 +150,7 @@ export default function TiendaPage() {
           </main>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

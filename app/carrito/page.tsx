@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface ItemCarrito {
   id: number;
@@ -172,6 +173,7 @@ export default function CarritoPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
