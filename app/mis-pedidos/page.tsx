@@ -15,6 +15,10 @@ interface Pedido {
   created_at: string;
   fecha_estimada_entrega: string | null;
   items: { nombre_producto: string; cantidad: number; precio_unitario: number }[];
+  direccion: {
+    calle: string; numero_exterior: string | null; colonia: string | null;
+    municipio: string | null; ciudad: string; estado: string; codigo_postal: string;
+  } | null;
 }
 
 const PASOS: { key: EstadoPedido; label: string }[] = [
@@ -200,6 +204,19 @@ function MisPedidosContent() {
                       <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-3 flex items-center gap-3">
                         <span className="text-2xl">✅</span>
                         <p className="text-sm font-medium text-green-700">Tu pedido fue entregado exitosamente.</p>
+                      </div>
+                    )}
+
+                    {/* Dirección de entrega */}
+                    {pedido.direccion?.calle && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Dirección de entrega</p>
+                        <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-700">
+                          <p>{pedido.direccion.calle} {pedido.direccion.numero_exterior}</p>
+                          <p className="text-gray-500 text-xs mt-0.5">
+                            {[pedido.direccion.colonia, pedido.direccion.municipio, pedido.direccion.ciudad, pedido.direccion.estado].filter(Boolean).join(", ")} · CP {pedido.direccion.codigo_postal}
+                          </p>
+                        </div>
                       </div>
                     )}
 

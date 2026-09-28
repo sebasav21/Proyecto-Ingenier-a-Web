@@ -14,11 +14,21 @@ export async function GET() {
          'nombre_producto', dp.nombre_producto,
          'cantidad', dp.cantidad,
          'precio_unitario', dp.precio_unitario
-       )) AS items
+       )) AS items,
+       json_build_object(
+         'calle', d.calle,
+         'numero_exterior', d.numero_exterior,
+         'colonia', d.colonia,
+         'municipio', d.municipio,
+         'ciudad', d.ciudad,
+         'estado', d.estado,
+         'codigo_postal', d.codigo_postal
+       ) AS direccion
      FROM pedidos p
      LEFT JOIN detalle_pedido dp ON dp.pedido_id = p.id
+     LEFT JOIN direcciones d ON d.id = p.direccion_id
      WHERE p.usuario_id = $1
-     GROUP BY p.id
+     GROUP BY p.id, d.calle, d.numero_exterior, d.colonia, d.municipio, d.ciudad, d.estado, d.codigo_postal
      ORDER BY p.created_at DESC`,
     [userId]
   );
