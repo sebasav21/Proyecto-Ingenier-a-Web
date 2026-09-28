@@ -152,7 +152,7 @@ export default function RegistroPage() {
               value={form.password}
               onChange={(e) => set("password", e.target.value)}
               placeholder="Mín. 8 caracteres, 1 mayúscula, 1 número"
-              autoComplete="new-password"
+              autoComplete="off"
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500"
             />
             {form.password.length > 0 && (
@@ -188,7 +188,7 @@ export default function RegistroPage() {
               value={form.confirmar}
               onChange={(e) => set("confirmar", e.target.value)}
               placeholder="Repite tu contraseña"
-              autoComplete="new-password"
+              autoComplete="off"
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500"
             />
             {form.confirmar.length > 0 && form.password !== form.confirmar && (
