@@ -173,7 +173,7 @@ export default function AdminReportesPage() {
                   <div key={i} className="px-5 py-3 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {new Date(d.fecha + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })}
+                        {new Date(String(d.fecha).slice(0, 10) + "T12:00:00").toLocaleDateString("es-MX", { weekday: "short", day: "numeric", month: "short" })}
                       </p>
                       <p className="text-xs text-gray-400">{d.pedidos} {Number(d.pedidos) === 1 ? "pedido" : "pedidos"}</p>
                     </div>

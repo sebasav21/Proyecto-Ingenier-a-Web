@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession, Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -27,9 +28,9 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const row = await queryOne(
-    `INSERT INTO productos (nombre, descripcion, precio, stock, categoria_id, activo)
-     VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [body.nombre, body.descripcion, body.precio, body.stock, body.categoria_id, body.activo ?? true]
+    `INSERT INTO productos (nombre, descripcion, precio, stock, categoria_id, activo, dias_entrega)
+     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+    [body.nombre, body.descripcion, body.precio, body.stock, body.categoria_id, body.activo ?? true, body.dias_entrega ?? 3]
   );
   return NextResponse.json(row);
 }
@@ -40,9 +41,9 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json();
   await query(
-    `UPDATE productos SET nombre=$1, descripcion=$2, precio=$3, stock=$4, categoria_id=$5, activo=$6
-     WHERE id=$7`,
-    [body.nombre, body.descripcion, body.precio, body.stock, body.categoria_id, body.activo, body.id]
+    `UPDATE productos SET nombre=$1, descripcion=$2, precio=$3, stock=$4, categoria_id=$5, activo=$6, dias_entrega=COALESCE($7, dias_entrega)
+     WHERE id=$8`,
+    [body.nombre, body.descripcion, body.precio, body.stock, body.categoria_id, body.activo, body.dias_entrega ?? null, body.id]
   );
   return NextResponse.json({ ok: true });
 }
