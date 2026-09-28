@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -223,6 +224,12 @@ export default function InventarioPage() {
       <Navbar perfil={perfil} />
 
       <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-4">
+          <Link href="/tienda" className="inline-flex items-center gap-1 text-sm text-guinda-700 hover:underline">
+            ← Regresar al catálogo
+          </Link>
+        </div>
+
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Control de inventario</h1>
