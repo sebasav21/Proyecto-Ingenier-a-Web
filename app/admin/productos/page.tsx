@@ -37,6 +37,10 @@ export default function AdminProductosPage() {
   const [nuevaUrl, setNuevaUrl] = useState("");
   const [savingImg, setSavingImg] = useState(false);
 
+  // Confirmaciones
+  const [confirmToggle, setConfirmToggle] = useState<Producto | null>(null);
+  const [confirmEliminarImg, setConfirmEliminarImg] = useState<number | null>(null);
+
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/auth/login"); return; }
     if (status !== "authenticated") return;
@@ -108,13 +112,14 @@ export default function AdminProductosPage() {
     setSaving(false);
   }
 
-  async function toggleActivo(id: number, activo: boolean) {
+  async function toggleActivo(p: Producto) {
     await fetch("/api/admin/productos", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, activo: !activo }),
+      body: JSON.stringify({ id: p.id, activo: !p.activo }),
     });
-    setProductos((prev) => prev.map((p) => p.id === id ? { ...p, activo: !activo } : p));
+    setProductos((prev) => prev.map((prod) => prod.id === p.id ? { ...prod, activo: !p.activo } : prod));
+    setConfirmToggle(null);
   }
 
   async function abrirImagenes(p: Producto) {
@@ -155,6 +160,7 @@ export default function AdminProductosPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ imagen_id: imagenId }),
     });
+    setConfirmEliminarImg(null);
     await cargarImagenes(imgProducto.id);
   }
 
@@ -282,7 +288,7 @@ export default function AdminProductosPage() {
                           <button onClick={() => setPrincipal(img.id)}
                             className="text-xs text-white/80 hover:text-white">Hacer principal</button>
                         )}
-                        <button onClick={() => eliminarImagen(img.id)}
+                        <button onClick={() => setConfirmEliminarImg(img.id)}
                           className="text-xs text-red-300 hover:text-red-100 ml-auto">Eliminar</button>
                       </div>
                     </div>
@@ -354,7 +360,7 @@ export default function AdminProductosPage() {
                         className="text-guinda-700 hover:underline text-xs">Editar</button>
                       <button onClick={() => abrirImagenes(p)}
                         className="text-blue-600 hover:underline text-xs">Imágenes</button>
-                      <button onClick={() => toggleActivo(p.id, p.activo)}
+                      <button onClick={() => setConfirmToggle(p)}
                         className="text-gray-400 hover:text-gray-600 text-xs">
                         {p.activo ? "Desactivar" : "Activar"}
                       </button>
@@ -366,6 +372,45 @@ export default function AdminProductosPage() {
           </table>
         </div>
       </div>
+
+      {/* Modal confirmar desactivar/activar producto */}
+      {confirmToggle && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="font-bold text-lg mb-2">{confirmToggle.activo ? "¿Desactivar producto?" : "¿Activar producto?"}</h2>
+            <p className="text-sm text-gray-500 mb-1"><strong>{confirmToggle.nombre}</strong></p>
+            <p className="text-sm text-gray-500 mb-6">
+              {confirmToggle.activo
+                ? "El producto dejará de aparecer en la tienda."
+                : "El producto volverá a aparecer en la tienda."}
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmToggle(null)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
+              <button onClick={() => toggleActivo(confirmToggle)}
+                className={`flex-1 text-white py-2 rounded-lg text-sm font-medium ${confirmToggle.activo ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}>
+                {confirmToggle.activo ? "Desactivar" : "Activar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal confirmar eliminar imagen */}
+      {confirmEliminarImg !== null && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="font-bold text-lg mb-2">¿Eliminar imagen?</h2>
+            <p className="text-sm text-gray-500 mb-6">Esta acción no se puede deshacer.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmEliminarImg(null)}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">Cancelar</button>
+              <button onClick={() => eliminarImagen(confirmEliminarImg)}
+                className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700">Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
