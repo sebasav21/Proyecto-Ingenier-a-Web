@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import type { Perfil } from "@/lib/types";
 
 interface Producto {
   id: number;
@@ -13,15 +12,15 @@ interface Producto {
   precio: number;
   stock: number;
   activo: boolean;
-  categorias: { nombre: string } | null;
+  categoria_nombre: string | null;
 }
 
 interface Categoria { id: number; nombre: string; }
 
 export default function AdminProductosPage() {
-  const supabase = createClient();
+  const { status } = useSession();
   const router = useRouter();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,24 +30,26 @@ export default function AdminProductosPage() {
   const [form, setForm] = useState({ nombre: "", descripcion: "", precio: "", stock: "", categoria_id: "" });
 
   useEffect(() => {
+    if (status === "unauthenticated") { router.push("/auth/login"); return; }
+    if (status !== "authenticated") return;
+
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth/login"); return; }
-      const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
+      const perfilRes = await fetch("/api/perfil");
+      const p = await perfilRes.json();
       if (!p || (p.rol !== "admin" && p.rol !== "general")) { router.push("/tienda"); return; }
       setPerfil(p);
       await cargarDatos();
     }
     init();
-  }, []);
+  }, [status]);
 
   async function cargarDatos() {
-    const [{ data: prods }, { data: cats }] = await Promise.all([
-      supabase.from("productos").select("id, nombre, precio, stock, activo, categorias(nombre)").order("id"),
-      supabase.from("categorias").select("id, nombre").eq("activo", true).order("nombre"),
+    const [prodsRes, catsRes] = await Promise.all([
+      fetch("/api/admin/productos"),
+      fetch("/api/categorias"),
     ]);
-    setProductos((prods as unknown as Producto[]) ?? []);
-    setCategorias(cats ?? []);
+    setProductos(await prodsRes.json());
+    setCategorias(await catsRes.json());
     setLoading(false);
   }
 
@@ -76,18 +77,21 @@ export default function AdminProductosPage() {
     if (err) { alert(err); return; }
     setSaving(true);
 
-    const data = {
+    const body = {
+      ...(editando ? { id: editando.id } : {}),
       nombre: form.nombre.trim(),
+      descripcion: form.descripcion.trim() || null,
       precio: Number(form.precio),
       stock: Number(form.stock),
       categoria_id: form.categoria_id ? Number(form.categoria_id) : null,
+      activo: editando ? editando.activo : true,
     };
 
-    if (editando) {
-      await supabase.from("productos").update(data).eq("id", editando.id);
-    } else {
-      await supabase.from("productos").insert({ ...data, descripcion: form.descripcion.trim() || null });
-    }
+    await fetch("/api/admin/productos", {
+      method: editando ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
     setShowForm(false);
     await cargarDatos();
@@ -95,7 +99,11 @@ export default function AdminProductosPage() {
   }
 
   async function toggleActivo(id: number, activo: boolean) {
-    await supabase.from("productos").update({ activo: !activo }).eq("id", id);
+    await fetch("/api/admin/productos", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, activo: !activo }),
+    });
     setProductos((prev) => prev.map((p) => p.id === id ? { ...p, activo: !activo } : p));
   }
 
@@ -121,7 +129,6 @@ export default function AdminProductosPage() {
           </button>
         </div>
 
-        {/* Modal formulario */}
         {showForm && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -176,7 +183,6 @@ export default function AdminProductosPage() {
           </div>
         )}
 
-        {/* Tabla */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
@@ -193,7 +199,7 @@ export default function AdminProductosPage() {
               {productos.map((p) => (
                 <tr key={p.id} className={`hover:bg-gray-50 ${!p.activo ? "opacity-50" : ""}`}>
                   <td className="px-4 py-3 font-medium text-gray-900 max-w-xs truncate">{p.nombre}</td>
-                  <td className="px-4 py-3 text-gray-500">{p.categorias?.nombre ?? "—"}</td>
+                  <td className="px-4 py-3 text-gray-500">{p.categoria_nombre ?? "—"}</td>
                   <td className="px-4 py-3 text-right font-medium">
                     ${Number(p.precio).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
                   </td>

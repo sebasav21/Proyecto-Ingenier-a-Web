@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import type { Perfil } from "@/lib/types";
 
 interface Producto {
   id: number;
@@ -13,7 +12,7 @@ interface Producto {
   precio: number;
   stock: number;
   activo: boolean;
-  categorias: { nombre: string } | null;
+  categoria_nombre: string | null;
   imagenes_producto: { url: string; es_principal: boolean }[];
 }
 
@@ -23,8 +22,8 @@ interface Categoria {
 }
 
 export default function TiendaPage() {
-  const supabase = createClient();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const { data: session } = useSession();
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [cartCount, setCartCount] = useState(0);
@@ -34,36 +33,31 @@ export default function TiendaPage() {
 
   useEffect(() => {
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
-        setPerfil(p);
-        const { data: carrito } = await supabase.from("carritos").select("id").eq("usuario_id", user.id).single();
-        if (carrito) {
-          const { count } = await supabase.from("items_carrito").select("*", { count: "exact", head: true }).eq("carrito_id", carrito.id);
-          setCartCount(count ?? 0);
-        }
+      const [catsRes, prodsRes] = await Promise.all([
+        fetch("/api/categorias"),
+        fetch("/api/productos"),
+      ]);
+      setCategorias(await catsRes.json());
+      setProductos(await prodsRes.json());
+
+      if (session?.user) {
+        const perfilRes = await fetch("/api/perfil");
+        setPerfil(await perfilRes.json());
+        const carritoRes = await fetch("/api/carrito");
+        const items = await carritoRes.json();
+        setCartCount(Array.isArray(items) ? items.length : 0);
       }
-      const { data: cats, error: catsError } = await supabase.from("categorias").select("*").eq("activo", true).order("nombre");
-      console.log("Categorias:", cats, "Error:", catsError);
-      setCategorias(cats ?? []);
-      await cargarProductos(null, "");
       setLoading(false);
     }
     init();
-  }, []);
+  }, [session]);
 
   async function cargarProductos(catId: number | null, q: string) {
-    let query = supabase
-      .from("productos")
-      .select("*, categorias(nombre), imagenes_producto(url, es_principal)")
-      .eq("activo", true)
-      .order("id");
-    if (catId) query = query.eq("categoria_id", catId);
-    if (q) query = query.ilike("nombre", `%${q}%`);
-    const { data, error } = await query;
-    console.log("Productos:", data, "Error:", error);
-    setProductos((data as Producto[]) ?? []);
+    const params = new URLSearchParams();
+    if (catId) params.set("categoria", String(catId));
+    if (q) params.set("q", q);
+    const res = await fetch(`/api/productos?${params}`);
+    setProductos(await res.json());
   }
 
   async function filtrarCategoria(id: number | null) {
@@ -138,7 +132,7 @@ export default function TiendaPage() {
                         )}
                       </div>
                       <div className="p-3">
-                        <p className="text-xs text-gray-400 mb-0.5">{p.categorias?.nombre}</p>
+                        <p className="text-xs text-gray-400 mb-0.5">{p.categoria_nombre}</p>
                         <h3 className="text-sm font-medium text-gray-900 line-clamp-2 group-hover:text-guinda-700">
                           {p.nombre}
                         </h3>

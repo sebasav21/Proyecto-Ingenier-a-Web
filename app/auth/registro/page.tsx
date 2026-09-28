@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function RegistroPage() {
-  const supabase = createClient();
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -45,46 +44,39 @@ export default function RegistroPage() {
     setLoading(true);
     setError("");
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: { full_name: `${form.nombre} ${form.apellido_paterno}` },
-      },
-    });
-
-    if (signUpError) {
-      setError(signUpError.message === "User already registered"
-        ? "Ya existe una cuenta con ese correo."
-        : signUpError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (data.user) {
-      await supabase.from("perfiles").insert({
-        id: data.user.id,
+    const res = await fetch("/api/registro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         nombre: form.nombre.trim(),
         apellido_paterno: form.apellido_paterno.trim(),
         apellido_materno: form.apellido_materno.trim() || null,
         email: form.email.trim(),
         telefono: form.telefono.trim() || null,
-        rol: "cliente",
-      });
-      router.push("/tienda");
-      router.refresh();
+        password: form.password,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Error al crear la cuenta.");
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    // Auto-login after registration
+    await signIn("credentials", {
+      email: form.email.trim(),
+      password: form.password,
+      redirect: false,
+    });
+
+    router.push("/tienda");
+    router.refresh();
   }
 
   async function handleGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback`,
-      },
-    });
-    if (error) setError(error.message);
+    await signIn("google", { callbackUrl: "/tienda" });
   }
 
   const field = (label: string, key: string, type = "text", placeholder = "") => (

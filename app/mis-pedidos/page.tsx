@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState, Suspense } from "react";
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import type { Perfil, EstadoPedido } from "@/lib/types";
-import { Suspense } from "react";
+
+type EstadoPedido = "pendiente" | "confirmado" | "enviado" | "entregado" | "cancelado";
 
 interface Pedido {
   id: number;
@@ -13,7 +13,7 @@ interface Pedido {
   estado: EstadoPedido;
   notas: string | null;
   created_at: string;
-  detalle_pedido: { nombre_producto: string; cantidad: number; precio_unitario: number }[];
+  items: { nombre_producto: string; cantidad: number; precio_unitario: number }[];
 }
 
 const ESTADO_LABEL: Record<EstadoPedido, string> = {
@@ -33,35 +33,31 @@ const ESTADO_COLOR: Record<EstadoPedido, string> = {
 };
 
 function MisPedidosContent() {
-  const supabase = createClient();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const nuevoPedidoId = searchParams.get("nuevo");
 
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState<number | null>(nuevoPedidoId ? Number(nuevoPedidoId) : null);
 
   useEffect(() => {
+    if (status === "unauthenticated") { router.push("/auth/login"); return; }
+    if (status !== "authenticated") return;
+
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth/login"); return; }
-
-      const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
-      setPerfil(p);
-
-      const { data } = await supabase
-        .from("pedidos")
-        .select("id, total, estado, notas, created_at, detalle_pedido(nombre_producto, cantidad, precio_unitario)")
-        .eq("usuario_id", user.id)
-        .order("created_at", { ascending: false });
-
-      setPedidos((data as unknown as Pedido[]) ?? []);
+      const [perfilRes, pedidosRes] = await Promise.all([
+        fetch("/api/perfil"),
+        fetch("/api/pedidos"),
+      ]);
+      setPerfil(await perfilRes.json());
+      setPedidos(await pedidosRes.json());
       setLoading(false);
     }
     init();
-  }, []);
+  }, [status]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -125,7 +121,7 @@ function MisPedidosContent() {
                   <div className="border-t border-gray-100 px-6 py-4">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3">Productos</h3>
                     <div className="space-y-2">
-                      {pedido.detalle_pedido.map((d, i) => (
+                      {pedido.items?.map((d, i) => (
                         <div key={i} className="flex justify-between text-sm">
                           <span className="text-gray-600">{d.nombre_producto} × {d.cantidad}</span>
                           <span className="font-medium">

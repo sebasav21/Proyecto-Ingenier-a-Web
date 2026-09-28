@@ -1,43 +1,46 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import type { Perfil } from "@/lib/types";
 
 export default function AdminPage() {
-  const supabase = createClient();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [stats, setStats] = useState({ productos: 0, pedidos: 0, usuarios: 0, ingresos: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth/login"); return; }
+    if (status === "unauthenticated") { router.push("/auth/login"); return; }
+    if (status !== "authenticated") return;
 
-      const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
-      if (!p || (p.rol !== "admin" && p.rol !== "general")) {
-        router.push("/tienda"); return;
-      }
+    async function init() {
+      const perfilRes = await fetch("/api/perfil");
+      const p = await perfilRes.json();
+      if (!p || (p.rol !== "admin" && p.rol !== "general")) { router.push("/tienda"); return; }
       setPerfil(p);
 
-      const [{ count: productos }, { count: pedidos }, { count: usuarios }, { data: ingresos }] = await Promise.all([
-        supabase.from("productos").select("*", { count: "exact", head: true }).eq("activo", true),
-        supabase.from("pedidos").select("*", { count: "exact", head: true }),
-        supabase.from("perfiles").select("*", { count: "exact", head: true }),
-        supabase.from("pedidos").select("total"),
+      const [prodsRes, pedidosRes] = await Promise.all([
+        fetch("/api/admin/productos"),
+        fetch("/api/admin/pedidos"),
       ]);
+      const prods = await prodsRes.json();
+      const pedidos = await pedidosRes.json();
 
-      const totalIngresos = (ingresos ?? []).reduce((sum: number, p: { total: number }) => sum + Number(p.total), 0);
-      setStats({ productos: productos ?? 0, pedidos: pedidos ?? 0, usuarios: usuarios ?? 0, ingresos: totalIngresos });
+      const ingresos = pedidos.reduce((s: number, p: { total: number }) => s + Number(p.total), 0);
+      setStats({
+        productos: prods.filter((p: { activo: boolean }) => p.activo).length,
+        pedidos: pedidos.length,
+        usuarios: 0,
+        ingresos,
+      });
       setLoading(false);
     }
     init();
-  }, []);
+  }, [status]);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -53,7 +56,6 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Panel de administración</h1>
         <p className="text-gray-500 text-sm mb-8">Gestiona productos, pedidos y usuarios de UPIITA Tienda</p>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
             { label: "Productos activos", value: stats.productos, icon: "📦" },
@@ -69,7 +71,6 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {/* Acciones */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link href="/admin/productos"
             className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition group">

@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import type { Perfil, EstadoPedido } from "@/lib/types";
+
+type EstadoPedido = "pendiente" | "confirmado" | "enviado" | "entregado" | "cancelado";
 
 interface Pedido {
   id: number;
   total: number;
   estado: EstadoPedido;
   created_at: string;
-  perfiles: { nombre: string; apellido_paterno: string | null; email: string } | null;
-  detalle_pedido: { nombre_producto: string; cantidad: number; precio_unitario: number }[];
+  cliente: string;
+  email: string;
+  items: { nombre_producto: string; cantidad: number; precio_unitario: number }[];
 }
 
 const ESTADOS: EstadoPedido[] = ["pendiente", "confirmado", "enviado", "entregado", "cancelado"];
@@ -27,9 +29,9 @@ const ESTADO_COLOR: Record<EstadoPedido, string> = {
 };
 
 export default function AdminPedidosPage() {
-  const supabase = createClient();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandido, setExpandido] = useState<number | null>(null);
@@ -37,29 +39,29 @@ export default function AdminPedidosPage() {
   const [actualizando, setActualizando] = useState<number | null>(null);
 
   useEffect(() => {
+    if (status === "unauthenticated") { router.push("/auth/login"); return; }
+    if (status !== "authenticated") return;
+
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth/login"); return; }
-      const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
+      const perfilRes = await fetch("/api/perfil");
+      const p = await perfilRes.json();
       if (!p || (p.rol !== "admin" && p.rol !== "general")) { router.push("/tienda"); return; }
       setPerfil(p);
-      await cargarPedidos();
+
+      const res = await fetch("/api/admin/pedidos");
+      setPedidos(await res.json());
+      setLoading(false);
     }
     init();
-  }, []);
-
-  async function cargarPedidos() {
-    const { data } = await supabase
-      .from("pedidos")
-      .select("id, total, estado, created_at, perfiles(nombre, apellido_paterno, email), detalle_pedido(nombre_producto, cantidad, precio_unitario)")
-      .order("created_at", { ascending: false });
-    setPedidos((data as unknown as Pedido[]) ?? []);
-    setLoading(false);
-  }
+  }, [status]);
 
   async function cambiarEstado(pedidoId: number, nuevoEstado: EstadoPedido) {
     setActualizando(pedidoId);
-    await supabase.from("pedidos").update({ estado: nuevoEstado, updated_at: new Date().toISOString() }).eq("id", pedidoId);
+    await fetch(`/api/pedidos/${pedidoId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado: nuevoEstado }),
+    });
     setPedidos((prev) => prev.map((p) => p.id === pedidoId ? { ...p, estado: nuevoEstado } : p));
     setActualizando(null);
   }
@@ -82,7 +84,6 @@ export default function AdminPedidosPage() {
           <h1 className="text-2xl font-bold text-gray-900 mt-1">Pedidos</h1>
         </div>
 
-        {/* Filtros */}
         <div className="flex gap-2 mb-6 flex-wrap">
           {(["todos", ...ESTADOS] as (EstadoPedido | "todos")[]).map((e) => (
             <button key={e} onClick={() => setFiltro(e)}
@@ -95,7 +96,6 @@ export default function AdminPedidosPage() {
           ))}
         </div>
 
-        {/* Lista pedidos */}
         <div className="space-y-3">
           {pedidosFiltrados.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-10 text-center text-gray-400">No hay pedidos</div>
@@ -107,7 +107,7 @@ export default function AdminPedidosPage() {
                   <div>
                     <p className="font-semibold text-gray-900">Pedido #{pedido.id}</p>
                     <p className="text-xs text-gray-400 mt-0.5">
-                      {pedido.perfiles ? `${pedido.perfiles.nombre} ${pedido.perfiles.apellido_paterno ?? ""}`.trim() : "—"}
+                      {pedido.cliente.trim()}
                       {" · "}
                       {new Date(pedido.created_at).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
@@ -133,9 +133,9 @@ export default function AdminPedidosPage() {
 
               {expandido === pedido.id && (
                 <div className="border-t border-gray-100 px-5 py-4 bg-gray-50">
-                  <p className="text-xs text-gray-500 mb-2">📧 {pedido.perfiles?.email}</p>
+                  <p className="text-xs text-gray-500 mb-2">📧 {pedido.email}</p>
                   <div className="space-y-1">
-                    {pedido.detalle_pedido.map((d, i) => (
+                    {pedido.items?.map((d, i) => (
                       <div key={i} className="flex justify-between text-sm">
                         <span className="text-gray-600">{d.nombre_producto} × {d.cantidad}</span>
                         <span className="font-medium">${(d.precio_unitario * d.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>

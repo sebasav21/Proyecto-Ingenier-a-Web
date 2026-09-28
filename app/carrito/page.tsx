@@ -1,74 +1,71 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import type { Perfil } from "@/lib/types";
 
 interface ItemCarrito {
   id: number;
   cantidad: number;
-  productos: {
-    id: number;
-    nombre: string;
-    precio: number;
-    stock: number;
-    imagenes_producto: { url: string; es_principal: boolean }[];
-  };
+  producto_id: number;
+  nombre: string;
+  precio: number;
+  stock: number;
+  imagen: string;
 }
 
 export default function CarritoPage() {
-  const supabase = createClient();
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [items, setItems] = useState<ItemCarrito[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
 
   useEffect(() => {
-    cargarCarrito();
-  }, []);
+    if (status === "unauthenticated") { router.push("/auth/login"); return; }
+    if (status !== "authenticated") return;
 
-  async function cargarCarrito() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/auth/login"); return; }
-
-    const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
-    setPerfil(p);
-
-    const { data: carrito } = await supabase
-      .from("carritos").select("id").eq("usuario_id", user.id).single();
-
-    if (!carrito) { setLoading(false); return; }
-
-    const { data } = await supabase
-      .from("items_carrito")
-      .select("id, cantidad, productos(id, nombre, precio, stock, imagenes_producto(url, es_principal))")
-      .eq("carrito_id", carrito.id)
-      .order("added_at");
-
-    setItems((data as unknown as ItemCarrito[]) ?? []);
-    setLoading(false);
-  }
+    async function cargar() {
+      const [perfilRes, carritoRes] = await Promise.all([
+        fetch("/api/perfil"),
+        fetch("/api/carrito"),
+      ]);
+      setPerfil(await perfilRes.json());
+      setItems(await carritoRes.json());
+      setLoading(false);
+    }
+    cargar();
+  }, [status]);
 
   async function actualizarCantidad(itemId: number, nuevaCantidad: number) {
     if (nuevaCantidad < 1) return;
     setUpdating(itemId);
-    await supabase.from("items_carrito").update({ cantidad: nuevaCantidad }).eq("id", itemId);
+    const item = items.find((i) => i.id === itemId);
+    if (!item) return;
+    await fetch("/api/carrito", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ producto_id: item.producto_id, cantidad: nuevaCantidad - item.cantidad }),
+    });
     setItems((prev) => prev.map((i) => i.id === itemId ? { ...i, cantidad: nuevaCantidad } : i));
     setUpdating(null);
   }
 
   async function eliminarItem(itemId: number) {
     setUpdating(itemId);
-    await supabase.from("items_carrito").delete().eq("id", itemId);
+    await fetch("/api/carrito", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ item_id: itemId }),
+    });
     setItems((prev) => prev.filter((i) => i.id !== itemId));
     setUpdating(null);
   }
 
-  const total = items.reduce((sum, i) => sum + i.productos.precio * i.cantidad, 0);
+  const total = items.reduce((sum, i) => sum + Number(i.precio) * i.cantidad, 0);
   const totalItems = items.reduce((sum, i) => sum + i.cantidad, 0);
 
   if (loading) return (
@@ -95,59 +92,54 @@ export default function CarritoPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Items */}
             <div className="lg:col-span-2 space-y-3">
-              {items.map((item) => {
-                const img = item.productos.imagenes_producto?.find((i) => i.es_principal)?.url;
-                return (
-                  <div key={item.id} className="bg-white rounded-xl shadow-sm p-4 flex gap-4">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                      {img ? (
-                        <img src={img} alt={item.productos.nombre} className="w-full h-full object-cover rounded-lg" />
-                      ) : (
-                        <span className="text-2xl">📦</span>
-                      )}
-                    </div>
+              {items.map((item) => (
+                <div key={item.id} className="bg-white rounded-xl shadow-sm p-4 flex gap-4">
+                  <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                    {item.imagen ? (
+                      <img src={item.imagen} alt={item.nombre} className="w-full h-full object-cover rounded-lg" />
+                    ) : (
+                      <span className="text-2xl">📦</span>
+                    )}
+                  </div>
 
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm truncate">{item.productos.nombre}</h3>
-                      <p className="text-guinda-700 font-bold mt-1">
-                        ${Number(item.productos.precio).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
-                      </p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 text-sm truncate">{item.nombre}</h3>
+                    <p className="text-guinda-700 font-bold mt-1">
+                      ${Number(item.precio).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                    </p>
 
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                          <button
-                            onClick={() => actualizarCantidad(item.id, item.cantidad - 1)}
-                            disabled={updating === item.id || item.cantidad <= 1}
-                            className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 disabled:opacity-30">−</button>
-                          <span className="px-3 py-1 text-sm font-medium">{item.cantidad}</span>
-                          <button
-                            onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}
-                            disabled={updating === item.id || item.cantidad >= item.productos.stock}
-                            className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 disabled:opacity-30">+</button>
-                        </div>
-
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                         <button
-                          onClick={() => eliminarItem(item.id)}
-                          disabled={updating === item.id}
-                          className="text-red-400 hover:text-red-600 text-sm disabled:opacity-30">
-                          Eliminar
-                        </button>
+                          onClick={() => actualizarCantidad(item.id, item.cantidad - 1)}
+                          disabled={updating === item.id || item.cantidad <= 1}
+                          className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 disabled:opacity-30">−</button>
+                        <span className="px-3 py-1 text-sm font-medium">{item.cantidad}</span>
+                        <button
+                          onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}
+                          disabled={updating === item.id || item.cantidad >= item.stock}
+                          className="px-2.5 py-1 hover:bg-gray-100 text-gray-600 disabled:opacity-30">+</button>
                       </div>
-                    </div>
 
-                    <div className="text-right shrink-0">
-                      <p className="font-bold text-gray-900">
-                        ${(item.productos.precio * item.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
-                      </p>
+                      <button
+                        onClick={() => eliminarItem(item.id)}
+                        disabled={updating === item.id}
+                        className="text-red-400 hover:text-red-600 text-sm disabled:opacity-30">
+                        Eliminar
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="text-right shrink-0">
+                    <p className="font-bold text-gray-900">
+                      ${(Number(item.precio) * item.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
 
-            {/* Resumen */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-xl shadow-sm p-6 sticky top-20">
                 <h2 className="font-bold text-gray-900 text-lg mb-4">Resumen</h2>

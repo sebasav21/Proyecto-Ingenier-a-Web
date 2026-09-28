@@ -1,24 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
-import type { Perfil } from "@/lib/types";
 
 interface ItemCarrito {
   id: number;
   cantidad: number;
-  productos: { id: number; nombre: string; precio: number };
+  producto_id: number;
+  nombre: string;
+  precio: number;
 }
 
 export default function CheckoutPage() {
-  const supabase = createClient();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [perfil, setPerfil] = useState<{ nombre: string; rol: string } | null>(null);
   const [items, setItems] = useState<ItemCarrito[]>([]);
-  const [carritoId, setCarritoId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState("");
@@ -30,29 +30,23 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    if (status === "unauthenticated") { router.push("/auth/login"); return; }
+    if (status !== "authenticated") return;
+
     async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/auth/login"); return; }
-
-      const { data: p } = await supabase.from("perfiles").select("*").eq("id", user.id).single();
+      const [perfilRes, carritoRes] = await Promise.all([
+        fetch("/api/perfil"),
+        fetch("/api/carrito"),
+      ]);
+      const p = await perfilRes.json();
+      const cart = await carritoRes.json();
       setPerfil(p);
-
-      const { data: carrito } = await supabase
-        .from("carritos").select("id").eq("usuario_id", user.id).single();
-      if (!carrito) { router.push("/tienda"); return; }
-      setCarritoId(carrito.id);
-
-      const { data } = await supabase
-        .from("items_carrito")
-        .select("id, cantidad, productos(id, nombre, precio)")
-        .eq("carrito_id", carrito.id);
-
-      if (!data || data.length === 0) { router.push("/carrito"); return; }
-      setItems(data as unknown as ItemCarrito[]);
+      if (!cart.length) { router.push("/carrito"); return; }
+      setItems(cart);
       setLoading(false);
     }
     init();
-  }, []);
+  }, [status]);
 
   function set(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -75,71 +69,19 @@ export default function CheckoutPage() {
     setProcesando(true);
     setError("");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const total = items.reduce((sum, i) => sum + i.productos.precio * i.cantidad, 0);
-
-    // Guardar dirección
-    const { data: direccion } = await supabase.from("direcciones").insert({
-      usuario_id: user.id,
-      calle: form.calle.trim(),
-      numero_exterior: form.numero_exterior.trim(),
-      numero_interior: form.numero_interior.trim() || null,
-      colonia: form.colonia.trim() || null,
-      ciudad: form.ciudad.trim(),
-      estado: form.estado.trim(),
-      codigo_postal: form.codigo_postal.trim(),
-    }).select("id").single();
-
-    // Crear pedido
-    const { data: pedido } = await supabase.from("pedidos").insert({
-      usuario_id: user.id,
-      direccion_id: direccion?.id ?? null,
-      total,
-      estado: "pendiente",
-      notas: form.notas.trim() || null,
-    }).select("id").single();
-
-    if (!pedido) { setError("Error al crear el pedido."); setProcesando(false); return; }
-
-    // Guardar detalle
-    const detalles = items.map((i) => ({
-      pedido_id: pedido.id,
-      producto_id: i.productos.id,
-      nombre_producto: i.productos.nombre,
-      precio_unitario: i.productos.precio,
-      cantidad: i.cantidad,
-    }));
-    await supabase.from("detalle_pedido").insert(detalles);
-
-    // Descontar stock de cada producto
-    for (const item of items) {
-      const { data: prod } = await supabase
-        .from("productos").select("stock").eq("id", item.productos.id).single();
-      if (prod) {
-        const nuevoStock = Math.max(0, prod.stock - item.cantidad);
-        await supabase.from("productos").update({ stock: nuevoStock }).eq("id", item.productos.id);
-      }
-    }
-
-    // Limpiar carrito
-    if (carritoId) {
-      await supabase.from("items_carrito").delete().eq("carrito_id", carritoId);
-    }
-
-    // Notificación
-    await supabase.from("notificaciones").insert({
-      usuario_id: user.id,
-      pedido_id: pedido.id,
-      titulo: "Pedido confirmado",
-      mensaje: `Tu pedido #${pedido.id} fue recibido y está siendo procesado.`,
+    const res = await fetch("/api/pedidos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notas: form.notas.trim() || null }),
     });
 
-    router.push(`/mis-pedidos?nuevo=${pedido.id}`);
+    const data = await res.json();
+    if (!res.ok) { setError(data.error ?? "Error al crear el pedido."); setProcesando(false); return; }
+
+    router.push(`/mis-pedidos?nuevo=${data.id}`);
   }
 
-  const total = items.reduce((sum, i) => sum + i.productos.precio * i.cantidad, 0);
+  const total = items.reduce((sum, i) => sum + Number(i.precio) * i.cantidad, 0);
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -147,13 +89,13 @@ export default function CheckoutPage() {
     </div>
   );
 
-  const campo = (label: string, key: string, placeholder = "", required = true, type = "text") => (
+  const campo = (label: string, key: string, placeholder = "", required = true) => (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">
         {label}{required && " *"}
       </label>
       <input
-        type={type}
+        type="text"
         value={form[key as keyof typeof form]}
         onChange={(e) => set(key, e.target.value)}
         placeholder={placeholder}
@@ -170,7 +112,6 @@ export default function CheckoutPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Finalizar compra</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Formulario */}
           <div className="lg:col-span-2">
             <form onSubmit={handleSubmit} noValidate className="bg-white rounded-xl shadow-sm p-6 space-y-4">
               <h2 className="font-semibold text-gray-900 mb-2">Dirección de entrega</h2>
@@ -213,7 +154,6 @@ export default function CheckoutPage() {
             </form>
           </div>
 
-          {/* Resumen */}
           <div>
             <div className="bg-white rounded-xl shadow-sm p-6 sticky top-20">
               <h2 className="font-semibold text-gray-900 mb-4">Tu pedido</h2>
@@ -221,10 +161,10 @@ export default function CheckoutPage() {
                 {items.map((item) => (
                   <div key={item.id} className="flex justify-between text-sm">
                     <span className="text-gray-600 truncate flex-1 mr-2">
-                      {item.productos.nombre} × {item.cantidad}
+                      {item.nombre} × {item.cantidad}
                     </span>
                     <span className="font-medium shrink-0">
-                      ${(item.productos.precio * item.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                      ${(Number(item.precio) * item.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 ))}

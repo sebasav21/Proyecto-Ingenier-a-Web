@@ -1,12 +1,11 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function LoginForm() {
-  const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") ?? "/tienda";
@@ -30,24 +29,24 @@ function LoginForm() {
     if (validationError) { setError(validationError); return; }
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
       setError("Correo o contraseña incorrectos.");
+      setLoading(false);
     } else {
       router.push(redirectTo);
       router.refresh();
     }
-    setLoading(false);
   }
 
   async function handleGoogle() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}`,
-      },
-    });
-    if (error) setError(error.message);
+    await signIn("google", { callbackUrl: redirectTo });
   }
 
   return (

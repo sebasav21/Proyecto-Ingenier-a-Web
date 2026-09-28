@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import type { Perfil } from "@/lib/types";
+import { signOut } from "next-auth/react";
 import { useState } from "react";
+
+interface Perfil {
+  nombre: string;
+  rol: string;
+}
 
 interface Props {
   perfil: Perfil | null;
@@ -13,21 +16,12 @@ interface Props {
 }
 
 export default function Navbar({ perfil, cartCount = 0 }: Props) {
-  const supabase = createClient();
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  async function handleSignOut() {
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  }
 
   return (
     <nav className="bg-guinda-700 border-b border-guinda-800 sticky top-0 z-50 shadow-md">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
-        {/* Logo + nombre */}
         <Link href="/tienda" className="flex items-center gap-3 shrink-0">
           <Image src="/upiita-logo.png" alt="UPIITA" width={36} height={36} className="object-contain" />
           <div className="hidden sm:block">
@@ -36,7 +30,6 @@ export default function Navbar({ perfil, cartCount = 0 }: Props) {
           </div>
         </Link>
 
-        {/* Búsqueda */}
         <div className="flex-1 max-w-sm hidden sm:block">
           <form action="/tienda" method="get">
             <input
@@ -48,7 +41,6 @@ export default function Navbar({ perfil, cartCount = 0 }: Props) {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Carrito */}
           <Link href="/carrito" className="relative p-2 hover:bg-guinda-600 rounded-lg transition">
             <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -60,7 +52,6 @@ export default function Navbar({ perfil, cartCount = 0 }: Props) {
             )}
           </Link>
 
-          {/* Usuario */}
           {perfil ? (
             <div className="relative">
               <button
@@ -84,12 +75,13 @@ export default function Navbar({ perfil, cartCount = 0 }: Props) {
                     <Link href="/admin" onClick={() => setMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Panel Admin</Link>
                   )}
-                  {perfil.rol === "inventarios" && (
+                  {(perfil.rol === "inventarios" || perfil.rol === "admin") && (
                     <Link href="/inventario" onClick={() => setMenuOpen(false)}
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Inventario</Link>
                   )}
                   <div className="border-t border-gray-100 my-1" />
-                  <button onClick={handleSignOut}
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
                     className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">
                     Cerrar sesión
                   </button>
