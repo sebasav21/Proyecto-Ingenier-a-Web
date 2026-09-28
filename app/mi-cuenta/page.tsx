@@ -20,7 +20,7 @@ interface Direccion {
 
 const FORM_VACIO = {
   calle: "", numero_exterior: "", numero_interior: "",
-  colonia: "", codigo_postal: "", municipio: "", ciudad: "", pais: "México",
+  colonia: "", codigo_postal: "", municipio: "", ciudad: "", estado: "", pais: "México",
 };
 
 export default function MiCuentaPage() {
@@ -58,6 +58,7 @@ export default function MiCuentaPage() {
     if (!form.codigo_postal.trim() || !/^\d{5}$/.test(form.codigo_postal.trim()))
       return "El código postal debe tener 5 dígitos.";
     if (!form.ciudad.trim()) return "La ciudad es obligatoria.";
+    if (!form.estado.trim()) return "El estado es obligatorio.";
     return "";
   }
 
@@ -75,7 +76,7 @@ export default function MiCuentaPage() {
       calle: d.calle, numero_exterior: d.numero_exterior ?? "",
       numero_interior: d.numero_interior ?? "", colonia: d.colonia ?? "",
       codigo_postal: d.codigo_postal, municipio: d.municipio ?? "",
-      ciudad: d.ciudad, pais: d.pais,
+      ciudad: d.ciudad, estado: (d as unknown as { estado: string }).estado ?? "", pais: d.pais,
     });
     setEsPrincipal(d.es_principal);
     setError("");
@@ -232,8 +233,9 @@ export default function MiCuentaPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {f("Ciudad *", "ciudad", "Ciudad de México", true)}
-                {f("País", "pais", "México")}
+                {f("Estado *", "estado", "Ciudad de México", true)}
               </div>
+              {f("País", "pais", "México")}
               <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer pt-1">
                 <input type="checkbox" checked={esPrincipal}
                   onChange={(e) => setEsPrincipal(e.target.checked)}

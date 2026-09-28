@@ -21,10 +21,10 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const userId = (session.user as { id: string }).id;
-  const { calle, numero_exterior, numero_interior, colonia, codigo_postal, municipio, ciudad, pais, es_principal } = await req.json();
+  const { calle, numero_exterior, numero_interior, colonia, codigo_postal, municipio, ciudad, estado, pais, es_principal } = await req.json();
 
-  if (!calle || !ciudad || !codigo_postal) {
-    return NextResponse.json({ error: "Calle, ciudad y código postal son obligatorios." }, { status: 400 });
+  if (!calle || !ciudad || !codigo_postal || !estado) {
+    return NextResponse.json({ error: "Calle, ciudad, estado y código postal son obligatorios." }, { status: 400 });
   }
 
   if (es_principal) {
@@ -35,9 +35,9 @@ export async function POST(req: NextRequest) {
   const hacerPrincipal = es_principal || existentes.length === 0;
 
   const row = await queryOne(
-    `INSERT INTO direcciones (usuario_id, calle, numero_exterior, numero_interior, colonia, codigo_postal, municipio, ciudad, pais, es_principal)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-    [userId, calle, numero_exterior || null, numero_interior || null, colonia || null, codigo_postal, municipio || null, ciudad, pais || "México", hacerPrincipal]
+    `INSERT INTO direcciones (usuario_id, calle, numero_exterior, numero_interior, colonia, codigo_postal, municipio, ciudad, estado, pais, es_principal)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+    [userId, calle, numero_exterior || null, numero_interior || null, colonia || null, codigo_postal, municipio || null, ciudad, estado, pais || "México", hacerPrincipal]
   );
 
   return NextResponse.json(row);

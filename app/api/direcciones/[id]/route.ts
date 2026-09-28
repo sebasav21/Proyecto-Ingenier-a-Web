@@ -18,11 +18,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ ok: true });
   }
 
-  const { calle, numero_exterior, numero_interior, colonia, codigo_postal, municipio, ciudad, pais } = body;
+  const { calle, numero_exterior, numero_interior, colonia, codigo_postal, municipio, ciudad, estado, pais } = body;
   await query(
     `UPDATE direcciones SET calle=$1, numero_exterior=$2, numero_interior=$3, colonia=$4,
-     codigo_postal=$5, municipio=$6, ciudad=$7, pais=$8 WHERE id=$9 AND usuario_id=$10`,
-    [calle, numero_exterior || null, numero_interior || null, colonia || null, codigo_postal, municipio || null, ciudad, pais || "México", id, userId]
+     codigo_postal=$5, municipio=$6, ciudad=$7, estado=$8, pais=$9 WHERE id=$10 AND usuario_id=$11`,
+    [calle, numero_exterior || null, numero_interior || null, colonia || null, codigo_postal, municipio || null, ciudad, estado, pais || "México", id, userId]
   );
   return NextResponse.json({ ok: true });
 }
