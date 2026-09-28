@@ -145,8 +145,45 @@ export default function RegistroPage() {
             {field("RFC", "rfc", "text", "GALA850101ABC")}
             {field("CURP", "curp", "text", "GALA850101HMCRLS09")}
           </div>
-          {field("Contraseña *", "password", "password", "Mín. 8 caracteres, 1 mayúscula, 1 número")}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              placeholder="Mín. 8 caracteres, 1 mayúscula, 1 número"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-guinda-500"
+            />
+            {form.password.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="flex gap-1">
+                  {[
+                    form.password.length >= 8,
+                    /[A-Z]/.test(form.password),
+                    /[0-9]/.test(form.password),
+                    form.password.length >= 12,
+                  ].map((ok, i) => (
+                    <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${ok ? "bg-green-500" : "bg-gray-200"}`} />
+                  ))}
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  {[
+                    { ok: form.password.length >= 8, txt: "Al menos 8 caracteres" },
+                    { ok: /[A-Z]/.test(form.password), txt: "Al menos una mayúscula" },
+                    { ok: /[0-9]/.test(form.password), txt: "Al menos un número" },
+                  ].map(({ ok, txt }) => (
+                    <p key={txt} className={`text-xs ${ok ? "text-green-600" : "text-gray-400"}`}>
+                      {ok ? "✓" : "○"} {txt}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           {field("Confirmar contraseña *", "confirmar", "password", "Repite tu contraseña")}
+          {form.confirmar.length > 0 && form.password !== form.confirmar && (
+            <p className="text-xs text-red-500 -mt-2">Las contraseñas no coinciden.</p>
+          )}
 
           <button
             type="submit"

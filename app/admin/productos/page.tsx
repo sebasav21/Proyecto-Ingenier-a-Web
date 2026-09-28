@@ -130,6 +130,13 @@ export default function AdminProductosPage() {
 
   async function agregarImagen() {
     if (!imgProducto || !nuevaUrl.trim()) return;
+    try {
+      const u = new URL(nuevaUrl.trim());
+      if (!["http:", "https:"].includes(u.protocol)) throw new Error();
+    } catch {
+      alert("Ingresa una URL válida que comience con http:// o https://");
+      return;
+    }
     setSavingImg(true);
     await fetch(`/api/admin/productos/${imgProducto.id}/imagenes`, {
       method: "POST",
