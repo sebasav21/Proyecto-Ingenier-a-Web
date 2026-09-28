@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
   if (!carrito) return NextResponse.json({ error: "Carrito vacío" }, { status: 400 });
 
   const items = await query<{
-    producto_id: number; nombre: string; precio: number; cantidad: number; stock: number;
+    producto_id: number; nombre: string; precio: number; cantidad: number; stock: number; dias_entrega: number;
   }>(
-    `SELECT ic.producto_id, p.nombre, p.precio, ic.cantidad, p.stock
+    `SELECT ic.producto_id, p.nombre, p.precio, ic.cantidad, p.stock, COALESCE(p.dias_entrega, 3) AS dias_entrega
      FROM items_carrito ic JOIN productos p ON p.id = ic.producto_id
      WHERE ic.carrito_id = $1`,
     [carrito.id]
@@ -50,10 +50,12 @@ export async function POST(req: NextRequest) {
   if (!items.length) return NextResponse.json({ error: "Carrito vacío" }, { status: 400 });
 
   const total = items.reduce((s, i) => s + Number(i.precio) * i.cantidad, 0);
+  const maxDias = Math.max(...items.map((i) => i.dias_entrega));
 
   const pedido = await queryOne<{ id: number }>(
-    "INSERT INTO pedidos (usuario_id, total, notas) VALUES ($1, $2, $3) RETURNING id",
-    [userId, total, notas ?? null]
+    `INSERT INTO pedidos (usuario_id, total, notas, fecha_estimada_entrega)
+     VALUES ($1, $2, $3, CURRENT_DATE + $4::int) RETURNING id`,
+    [userId, total, notas ?? null, maxDias]
   );
 
   for (const item of items) {

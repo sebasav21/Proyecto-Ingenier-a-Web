@@ -13,24 +13,71 @@ interface Pedido {
   estado: EstadoPedido;
   notas: string | null;
   created_at: string;
+  fecha_estimada_entrega: string | null;
   items: { nombre_producto: string; cantidad: number; precio_unitario: number }[];
 }
 
-const ESTADO_LABEL: Record<EstadoPedido, string> = {
-  pendiente: "Pendiente",
-  confirmado: "Confirmado",
-  enviado: "Enviado",
-  entregado: "Entregado",
-  cancelado: "Cancelado",
-};
+const PASOS: { key: EstadoPedido; label: string }[] = [
+  { key: "pendiente", label: "Pendiente" },
+  { key: "confirmado", label: "Confirmado" },
+  { key: "enviado", label: "En camino" },
+  { key: "entregado", label: "Entregado" },
+];
 
 const ESTADO_COLOR: Record<EstadoPedido, string> = {
   pendiente: "bg-yellow-100 text-yellow-700",
-  confirmado: "bg-guinda-100 text-guinda-700",
+  confirmado: "bg-blue-100 text-blue-700",
   enviado: "bg-purple-100 text-purple-700",
   entregado: "bg-green-100 text-green-700",
   cancelado: "bg-red-100 text-red-700",
 };
+
+const ESTADO_ICON: Record<EstadoPedido, string> = {
+  pendiente: "🕐",
+  confirmado: "✅",
+  enviado: "🚚",
+  entregado: "📦",
+  cancelado: "❌",
+};
+
+function PasoStepper({ estado }: { estado: EstadoPedido }) {
+  if (estado === "cancelado") {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-medium">
+        ❌ Este pedido fue cancelado
+      </div>
+    );
+  }
+
+  const pasoActual = PASOS.findIndex((p) => p.key === estado);
+
+  return (
+    <div className="flex items-center gap-0 mt-4">
+      {PASOS.map((paso, i) => {
+        const completado = i <= pasoActual;
+        const esActual = i === pasoActual;
+        return (
+          <div key={paso.key} className="flex items-center flex-1">
+            <div className="flex flex-col items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all
+                ${completado ? "bg-guinda-700 text-white" : "bg-gray-200 text-gray-400"}
+                ${esActual ? "ring-2 ring-guinda-300 ring-offset-1" : ""}`}>
+                {completado ? "✓" : i + 1}
+              </div>
+              <span className={`text-xs mt-1 text-center leading-tight
+                ${completado ? "text-guinda-700 font-semibold" : "text-gray-400"}`}>
+                {paso.label}
+              </span>
+            </div>
+            {i < PASOS.length - 1 && (
+              <div className={`flex-1 h-0.5 mx-1 mb-4 ${i < pasoActual ? "bg-guinda-700" : "bg-gray-200"}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function MisPedidosContent() {
   const { data: session, status } = useSession();
@@ -70,11 +117,16 @@ function MisPedidosContent() {
       <Navbar perfil={perfil} cartCount={0} />
 
       <div className="max-w-3xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Mis pedidos</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Mis pedidos</h1>
+        <p className="text-sm text-gray-500 mb-6">Consulta el estado y seguimiento de tus compras</p>
 
         {nuevoPedidoId && (
-          <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 mb-6 text-sm">
-            ✅ ¡Tu pedido #{nuevoPedidoId} fue confirmado! Lo recibirás pronto.
+          <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-4 mb-6 text-sm flex items-start gap-3">
+            <span className="text-xl">🎉</span>
+            <div>
+              <p className="font-semibold">¡Pedido #{nuevoPedidoId} confirmado!</p>
+              <p className="text-green-600 mt-0.5">Tu pedido fue recibido y está siendo procesado. Puedes rastrear su estado aquí.</p>
+            </div>
           </div>
         )}
 
@@ -89,21 +141,23 @@ function MisPedidosContent() {
         ) : (
           <div className="space-y-4">
             {pedidos.map((pedido) => (
-              <div key={pedido.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div key={pedido.id} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                {/* Header del pedido */}
                 <button
                   onClick={() => setExpandido(expandido === pedido.id ? null : pedido.id)}
-                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition">
-                  <div className="flex items-center gap-4">
-                    <div className="text-left">
+                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition text-left">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{ESTADO_ICON[pedido.estado]}</span>
+                    <div>
                       <p className="font-semibold text-gray-900">Pedido #{pedido.id}</p>
-                      <p className="text-sm text-gray-400">
-                        {new Date(pedido.created_at).toLocaleDateString("es-MX", {
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Realizado el {new Date(pedido.created_at).toLocaleDateString("es-MX", {
                           day: "numeric", month: "long", year: "numeric"
                         })}
                       </p>
                     </div>
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${ESTADO_COLOR[pedido.estado]}`}>
-                      {ESTADO_LABEL[pedido.estado]}
+                      {pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -117,21 +171,59 @@ function MisPedidosContent() {
                   </div>
                 </button>
 
+                {/* Detalle expandido */}
                 {expandido === pedido.id && (
-                  <div className="border-t border-gray-100 px-6 py-4">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Productos</h3>
-                    <div className="space-y-2">
-                      {pedido.items?.map((d, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span className="text-gray-600">{d.nombre_producto} × {d.cantidad}</span>
-                          <span className="font-medium">
-                            ${(d.precio_unitario * d.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
-                      ))}
+                  <div className="border-t border-gray-100 px-6 py-5 space-y-5">
+
+                    {/* Stepper de seguimiento */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Seguimiento del pedido</p>
+                      <PasoStepper estado={pedido.estado} />
                     </div>
+
+                    {/* Fecha estimada de entrega */}
+                    {pedido.fecha_estimada_entrega && pedido.estado !== "cancelado" && pedido.estado !== "entregado" && (
+                      <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                        <span className="text-2xl">📅</span>
+                        <div>
+                          <p className="text-xs text-blue-500 font-medium">Entrega estimada</p>
+                          <p className="text-sm font-bold text-blue-800">
+                            {new Date(pedido.fecha_estimada_entrega).toLocaleDateString("es-MX", {
+                              weekday: "long", day: "numeric", month: "long", year: "numeric"
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {pedido.estado === "entregado" && (
+                      <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                        <span className="text-2xl">✅</span>
+                        <p className="text-sm font-medium text-green-700">Tu pedido fue entregado exitosamente.</p>
+                      </div>
+                    )}
+
+                    {/* Productos */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Productos</p>
+                      <div className="space-y-2">
+                        {pedido.items?.map((d, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1 border-b border-gray-50 last:border-0">
+                            <span className="text-gray-700">{d.nombre_producto} × {d.cantidad}</span>
+                            <span className="font-medium text-gray-900">
+                              ${(d.precio_unitario * d.cantidad).toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between text-sm font-bold pt-1">
+                          <span>Total</span>
+                          <span>${Number(pedido.total).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      </div>
+                    </div>
+
                     {pedido.notas && (
-                      <p className="text-sm text-gray-500 mt-3 italic">Nota: {pedido.notas}</p>
+                      <p className="text-sm text-gray-500 italic">Nota: {pedido.notas}</p>
                     )}
                   </div>
                 )}
