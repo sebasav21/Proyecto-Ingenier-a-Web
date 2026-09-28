@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 interface Producto {
   id: number;
@@ -257,6 +258,7 @@ export default function InventarioPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
